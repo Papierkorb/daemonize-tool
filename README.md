@@ -49,6 +49,8 @@ When **d** is started ..
 2. If more than one argument are given, start the application with those arguments 
 3. If one argument is given, search for it in `$PATH`, and if found, start that. Else, start `xdg-open` on that path/file
 
+**Note**: d fork()s before starting an application, thus, it never blocks.
+
 ## License (3-clause BSD)
 
 Copyright (c) 2015, Stefan 'Papierkorb' Merettig
