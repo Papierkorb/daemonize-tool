@@ -13,6 +13,21 @@
 #include <fcntl.h>
 #include <stdio.h>
 
+enum Mode {
+	/* Close stdout/err and stdin. */
+	SilentMode = 0,
+	
+	/* Don't close stdout/err, but stdin. */
+	VerboseMode = 1
+};
+
+static enum Mode chooseMode(int filedes) {
+	struct stat s;
+	if (fstat (filedes, &s) != 0)
+		return SilentMode;
+	return S_ISCHR(s.st_mode) ? SilentMode : VerboseMode;
+}
+
 static int isExecutable (const char *file) {
 	struct stat s;
 	if (stat (file, &s) == 0)
@@ -51,15 +66,19 @@ int main (int argc, char **argv) {
 	
 	// 
 	if (fork () == 0) {
+		int null = open ("/dev/null", O_WRONLY | O_NONBLOCK);
+		if (chooseMode (fileno(stdout)) == SilentMode) {
+			dup2 (null, fileno(stdout));
+			dup2 (null, fileno(stderr));
+		}
 		
-		close (fileno(stdout));
-		close (fileno(stderr));
-		close (fileno(stdin));
+		if (chooseMode (fileno(stdin)) == SilentMode) {
+			dup2 (null, fileno(stdin));
+		}
 		
-		open ("/dev/null", O_WRONLY | O_NONBLOCK);
-		open ("/dev/null", O_RDONLY | O_NONBLOCK);
-		open ("/dev/null", O_RDONLY | O_NONBLOCK);
+		close (null);
 		
+		// Start process
 		execvp (argv[offset], argv + offset);
 		
 		perror ("Failed to execute");

@@ -40,6 +40,8 @@ auto-completion:
 * Open a path with the default application: `$ d fileOrPath`
 * Open a URL with the default application: `$ d http://example.com/` or `$ d mailto:foo@bar.com`
 * Open the current working directory in a graphical browser: `$ d .`
+* Run a process but keep its output: `$ d ls > listing`
+* Run a process using stdin: `$ ls | d kate --stdin`
 
 ## Behaviour
 
@@ -48,6 +50,15 @@ When **d** is started ..
 1. If no arguments are given, print usage and exit
 2. If more than one argument are given, start the application with those arguments 
 3. If one argument is given, search for it in `$PATH`, and if found, start that. Else, start `xdg-open` on that path/file
+
+**d** will close *stdout* and *stderr* iff *stdout* is a character device.
+This means **d** will be silent if you just call it, but it will keep *stdout*
+and *stderr* open when you redirect the output somehow: `d foo | cat` or
+`d foo > bar`.
+
+**d** will close *stdin* iff *stdin* is a character device.
+This means that **d** will close *stdin* if you just call it, but will keep
+it open if you redirect data into it: `cat foo | d bar` or `d bar < foo`
 
 **Note**: d fork()s before starting an application, thus, it never blocks.
 
